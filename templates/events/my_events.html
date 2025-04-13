@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Events - EventHub{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">My Events</h1>
+    <p class="text-gray-600">Manage your created events and registrations</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Events Created Section -->
+    <div class="md:col-span-2">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div class="bg-indigo-600 text-white py-3 px-6 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Events You've Created</h2>
+                <a href="{% url 'events:event_create' %}" class="bg-white text-indigo-600 px-3 py-1 rounded-full text-sm hover:bg-indigo-100 transition-colors">
+                    <i class="fas fa-plus mr-1"></i> Create New
+                </a>
+            </div>
+            
+            <div class="p-6">
+                {% if created_events %}
+                <div class="space-y-4">
+                    {% for event in created_events %}
+                    <div class="border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="flex flex-col md:flex-row">
+                            <div class="w-full md:w-1/4 bg-gradient-to-r from-indigo-500 to-purple-600">
+                                {% if event.image_url %}
+                                <img src="{{ event.image_url }}" alt="{{ event.title }}" class="h-40 md:h-full w-full object-cover">
+                                {% else %}
+                                <div class="h-40 md:h-full w-full flex items-center justify-center text-white">
+                                    <i class="fas fa-calendar-alt text-5xl"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="p-4 flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-800 mb-2">{{ event.title }}</h3>
+                                        <div class="flex items-center text-gray-500 mb-2">
+                                            <i class="far fa-calendar-alt mr-2"></i>
+                                            <span>{{ event.start_time|date:"M d, Y • g:i A" }}</span>
+                                        </div>
+                                        <div class="flex items-center text-gray-500 mb-2">
+                                            <i class="fas fa-users mr-2"></i>
+                                            <span>{{ event.registrations.count }} attendees</span>
+                                        </div>
+                                    </div>
+                                    {% if event.start_time > now %}
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Upcoming</span>
+                                    {% elif event.end_time > now and event.start_time <= now %}
+                                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">In Progress</span>
+                                    {% else %}
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">Ended</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex flex-wrap gap-2 mt-4">
+                                    <a href="{% url 'events:event_detail' event_id=event.id %}" class="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 px-3 py-1 rounded text-sm transition-colors">
+                                        <i class="fas fa-eye mr-1"></i> View
+                                    </a>
+                                    <a href="{% url 'events:event_manage' event_id=event.id %}" class="bg-blue-100 text-blue-800 hover:bg-blue-200 px-3 py-1 rounded text-sm transition-colors">
+                                        <i class="fas fa-cog mr-1"></i> Manage
+                                    </a>
+                                    <a href="{% url 'events:event_edit' event_id=event.id %}" class="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 px-3 py-1 rounded text-sm transition-colors">
+                                        <i class="fas fa-edit mr-1"></i> Edit
+                                    </a>
+                                    {% if event.is_virtual and event.start_time <= now and event.end_time >= now %}
+                                    <a href="{% url 'events:livestream' event_id=event.id %}" class="bg-green-100 text-green-800 hover:bg-green-200 px-3 py-1 rounded text-sm transition-colors">
+                                        <i class="fas fa-video mr-1"></i> Livestream
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-6 text-gray-500">
+                    <i class="fas fa-calendar-plus text-5xl mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">No Events Created</h3>
+                    <p class="mb-4">You haven't created any events yet.</p>
+                    <a href="{% url 'events:event_create' %}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                        Create Your First Event
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Registered Events Section -->
+    <div>
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-3 px-6">
+                <h2 class="text-xl font-bold">Your Registrations</h2>
+            </div>
+            
+            <div class="p-6">
+                {% if registered_events %}
+                <div class="space-y-4">
+                    {% for event in registered_events %}
+                    <div class="border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="p-4">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">{{ event.title }}</h3>
+                            <div class="flex items-center text-gray-500 mb-2">
+                                <i class="far fa-calendar-alt mr-2"></i>
+                                <span>{{ event.start_time|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="flex items-center text-gray-500 mb-3">
+                                <i class="far fa-user mr-2"></i>
+                                <span>By {{ event.creator.username }}</span>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{% url 'events:event_detail' event_id=event.id %}" class="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 px-3 py-1 rounded text-sm transition-colors">
+                                    <i class="fas fa-eye mr-1"></i> View
+                                </a>
+                                {% if event.is_virtual and event.start_time <= now and event.end_time >= now %}
+                                <a href="{% url 'events:livestream' event_id=event.id %}" class="bg-green-100 text-green-800 hover:bg-green-200 px-3 py-1 rounded text-sm transition-colors">
+                                    <i class="fas fa-video mr-1"></i> Join
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-6 text-gray-500">
+                    <i class="fas fa-ticket-alt text-5xl mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">No Registrations</h3>
+                    <p class="mb-4">You haven't registered for any events.</p>
+                    <a href="{% url 'events:event_list' %}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                        Browse Events
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

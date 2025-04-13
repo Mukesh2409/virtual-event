@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+{% load form_tags %}
+
+{% block title %}Register - EventHub{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-indigo-600 text-white py-4 px-6">
+        <h2 class="text-2xl font-bold">Create Your Account</h2>
+        <p class="text-indigo-200">Join EventHub to host and attend virtual events</p>
+    </div>
+    
+    <div class="p-6">
+        <form method="POST" action="{% url 'accounts:register' %}">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label for="{{ form.username.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                {{ form.username|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" }}
+                {% if form.username.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.username.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.email.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
+                {{ form.email|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" }}
+                {% if form.email.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.email.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.first_name.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">First Name (Optional)</label>
+                {{ form.first_name|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" }}
+                {% if form.first_name.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.first_name.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.last_name.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Last Name (Optional)</label>
+                {{ form.last_name|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" }}
+                {% if form.last_name.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.last_name.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.password1.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                {{ form.password1|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" }}
+                {% if form.password1.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.password1.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-6">
+                <label for="{{ form.password2.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Confirm Password</label>
+                {{ form.password2|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" }}
+                {% if form.password2.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.password2.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-indigo-300 w-full">
+                    Register
+                </button>
+            </div>
+        </form>
+        
+        <div class="text-center mt-4">
+            <p class="text-sm text-gray-600">
+                Already have an account? 
+                <a href="{% url 'accounts:login' %}" class="text-indigo-600 hover:text-indigo-800">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

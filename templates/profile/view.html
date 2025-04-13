@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ user.username }}'s Profile - EventHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-32 flex items-end p-6">
+            <div class="bg-white rounded-full h-24 w-24 border-4 border-white flex items-center justify-center overflow-hidden">
+                <i class="fas fa-user text-4xl text-indigo-300"></i>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">{{ user.username }}</h1>
+                    <p class="text-gray-600">
+                        {% if user.first_name or user.last_name %}
+                            {{ user.first_name }} {{ user.last_name }}
+                        {% endif %}
+                    </p>
+                </div>
+                
+                {% if user.id == request.user.id %}
+                <div class="mt-4 md:mt-0">
+                    <a href="{% url 'accounts:profile_edit' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-edit mr-2"></i> Edit Profile
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="border-t pt-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800 mb-3">About</h2>
+                        {% if user.bio %}
+                            <p class="text-gray-700">{{ user.bio }}</p>
+                        {% else %}
+                            <p class="text-gray-500 italic">No bio provided</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800 mb-3">Contact Information</h2>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-indigo-500 w-6"></i>
+                                <span class="ml-2 text-gray-700">{{ user.email }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-indigo-500 w-6"></i>
+                                <span class="ml-2 text-gray-700">Member since {{ user.created_at|date:"F d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User's Events -->
+    <div class="mt-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Events Created</h2>
+        
+        {% if user.events_created.count > 0 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for event in user.events_created.all %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div class="h-40 bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white p-4">
+                    {% if event.image_url %}
+                    <img src="{{ event.image_url }}" alt="{{ event.title }}" class="h-full w-full object-cover">
+                    {% else %}
+                    <i class="fas fa-calendar-alt text-5xl"></i>
+                    {% endif %}
+                </div>
+                <div class="p-4">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">{{ event.title }}</h3>
+                    <div class="flex items-center text-gray-500 mb-2">
+                        <i class="far fa-calendar-alt mr-2"></i>
+                        <span>{{ event.start_time|date:"M d, Y" }}</span>
+                    </div>
+                    <a href="{% url 'events:event_detail' event_id=event.id %}" class="block text-center bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors mt-2">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <div class="text-gray-400 mb-4">
+                <i class="fas fa-calendar-times text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">No Events Created</h3>
+            <p class="text-gray-600 mb-4">This user hasn't created any events yet.</p>
+            {% if user.id == request.user.id %}
+            <a href="{% url 'events:event_create' %}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                Create Your First Event
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if user.id == request.user.id %}
+    <!-- User's Registrations -->
+    <div class="mt-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Registered Events</h2>
+        
+        {% if user.registrations.count > 0 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for registration in user.registrations.all %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div class="h-40 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white p-4">
+                    {% if registration.event.image_url %}
+                    <img src="{{ registration.event.image_url }}" alt="{{ registration.event.title }}" class="h-full w-full object-cover">
+                    {% else %}
+                    <i class="fas fa-calendar-alt text-5xl"></i>
+                    {% endif %}
+                </div>
+                <div class="p-4">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">{{ registration.event.title }}</h3>
+                    <div class="flex items-center text-gray-500 mb-2">
+                        <i class="far fa-calendar-alt mr-2"></i>
+                        <span>{{ registration.event.start_time|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="flex items-center text-gray-500 mb-2">
+                        <i class="far fa-user mr-2"></i>
+                        <span>By {{ registration.event.creator.username }}</span>
+                    </div>
+                    <a href="{% url 'events:event_detail' event_id=registration.event.id %}" class="block text-center bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors mt-2">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <div class="text-gray-400 mb-4">
+                <i class="fas fa-ticket-alt text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">No Registrations</h3>
+            <p class="text-gray-600 mb-4">You haven't registered for any events yet.</p>
+            <a href="{% url 'events:event_list' %}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                Browse Events
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

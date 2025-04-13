@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Livestream - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ event.title }}</h1>
+            <p class="text-gray-600">
+                <span class="mr-2">
+                    <i class="far fa-calendar-alt"></i> {{ event.start_time|date:"M d, Y • g:i A" }}
+                </span>
+                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">Live Now</span>
+            </p>
+        </div>
+        
+        <div class="mt-4 md:mt-0">
+            <a href="{% url 'events:event_detail' event_id=event.id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Event
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main livestream area -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Stream video -->
+            <div class="aspect-w-16 aspect-h-9 bg-black">
+                {% if event.stream_url %}
+                <iframe src="{{ event.stream_url }}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center bg-gray-900 text-white">
+                    <div class="text-center p-6">
+                        <i class="fas fa-video text-6xl mb-4 text-gray-400"></i>
+                        <h3 class="text-2xl font-bold mb-2">Stream Preview</h3>
+                        <p class="text-gray-400">This is a mock stream. In a real implementation, a video would be playing here.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Stream info -->
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">{{ event.title }}</h2>
+                <div class="flex items-center text-gray-600 mb-4">
+                    <i class="far fa-user mr-2"></i>
+                    <span>Hosted by {{ event.creator.username }}</span>
+                </div>
+                
+                <div class="border-t pt-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">About this event</h3>
+                    <p class="text-gray-700">{{ event.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat sidebar -->
+    <div>
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-3 px-6 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Live Chat</h2>
+                <span class="px-2 py-1 bg-white text-indigo-600 rounded-full text-xs font-medium">
+                    <span id="user-count">1</span> Watching
+                </span>
+            </div>
+            
+            <div class="flex flex-col h-[600px]">
+                <!-- Chat messages container -->
+                <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3">
+                    <!-- Messages will be added here by JavaScript -->
+                    <div class="text-center text-gray-500 py-4">
+                        <p>Welcome to the live chat!</p>
+                    </div>
+                </div>
+                
+                <!-- Chat input -->
+                <div class="border-t p-4">
+                    <form id="chat-form" class="flex gap-2">
+                        {% csrf_token %}
+                        {{ chat_form.message|add_class:"flex-grow shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" placeholder="Type a message..." }}
+                        {{ chat_form.submit|add_class:"bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded focus:outline-none focus:ring focus:ring-indigo-300" }}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming sessions (if any) -->
+{% if sessions %}
+<div class="mt-6 bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-indigo-100 py-3 px-6">
+        <h2 class="text-xl font-bold text-indigo-800">Event Schedule</h2>
+    </div>
+    
+    <div class="p-6">
+        <div class="space-y-4">
+            {% for session in sessions %}
+            <div class="border-l-4 {% if session.start_time <= now and session.end_time >= now %}border-green-500{% else %}border-indigo-500{% endif %} pl-4 py-2">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">{{ session.title }}</h3>
+                        {% if session.speaker %}
+                        <p class="text-gray-600"><i class="fas fa-user-tie mr-2"></i>{{ session.speaker }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="text-right text-gray-600">
+                        <div>{{ session.start_time|date:"g:i A" }} - {{ session.end_time|date:"g:i A" }}</div>
+                        <div>{{ session.start_time|date:"F d, Y" }}</div>
+                        {% if session.start_time <= now and session.end_time >= now %}
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Live Now</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if session.description %}
+                <p class="text-gray-700 mt-2">{{ session.description }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- JavaScript for Chat Functionality -->
+<script src="{% static 'js/chat.js' %}"></script>
+<script>
+    // Initialize chat functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const eventId = {{ event.id }};
+        const username = "{{ user.username }}";
+        initChat(eventId, username);
+    });
+</script>
+{% endblock %}

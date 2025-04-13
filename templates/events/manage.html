@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manage Event - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Manage: {{ event.title }}</h1>
+            <p class="text-gray-600">
+                <span class="mr-2">
+                    <i class="far fa-calendar-alt"></i> {{ event.start_time|date:"M d, Y • g:i A" }}
+                </span>
+                {% if event.is_virtual %}
+                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">Virtual</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="mt-4 md:mt-0 flex gap-2">
+            <a href="{% url 'events:event_detail' event_id=event.id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-eye mr-2"></i> View Event
+            </a>
+            <a href="{% url 'events:event_edit' event_id=event.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-edit mr-2"></i> Edit Event
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Main management panel -->
+    <div class="md:col-span-2 space-y-6">
+        <!-- Registrations -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-3 px-6 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Attendees ({{ registrations|length }})</h2>
+                <div class="text-sm bg-white text-indigo-600 px-2 py-1 rounded-full">
+                    {% if event.max_attendees %}
+                    {{ registrations|length }}/{{ event.max_attendees }} Registered
+                    {% else %}
+                    {{ registrations|length }} Registered
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="p-6">
+                {% if registrations %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for registration in registrations %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ registration.attendee.username }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-500">{{ registration.attendee.email }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-500">{{ registration.registration_date|date:"M d, Y" }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        {{ registration.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-gray-500">
+                    <i class="fas fa-users text-4xl mb-2"></i>
+                    <p>No attendees registered yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sessions Management -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-3 px-6">
+                <h2 class="text-xl font-bold">Event Sessions</h2>
+            </div>
+            
+            <div class="p-6">
+                {% if sessions %}
+                <div class="space-y-4 mb-6">
+                    {% for session in sessions %}
+                    <div class="border p-4 rounded-lg bg-gray-50">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">{{ session.title }}</h3>
+                                <div class="text-sm text-gray-500">
+                                    <span>{{ session.start_time|date:"g:i A" }} - {{ session.end_time|date:"g:i A" }}</span>
+                                    {% if session.speaker %}
+                                    <span class="ml-2">Speaker: {{ session.speaker }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if session.description %}
+                                <p class="text-gray-600 mt-2">{{ session.description }}</p>
+                                {% endif %}
+                            </div>
+                            <form action="{% url 'events:delete_session' event_id=event.id session_id=session.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure you want to delete this session?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-gray-500 mb-6">
+                    <i class="fas fa-clock text-4xl mb-2"></i>
+                    <p>No sessions added yet.</p>
+                </div>
+                {% endif %}
+                
+                <!-- Add Session Form -->
+                <div class="border p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Add New Session</h3>
+                    <form action="{% url 'events:add_session' event_id=event.id %}" method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="title" class="block text-gray-700 text-sm font-bold mb-2">Session Title</label>
+                            {{ session_form.title|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" placeholder="Enter session title" }}
+                            {% if session_form.title.errors %}
+                                <div class="text-red-500 text-xs mt-1">
+                                    {% for error in session_form.title.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="start_time" class="block text-gray-700 text-sm font-bold mb-2">Start Time</label>
+                                {{ session_form.start_time|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" type="datetime-local" }}
+                                {% if session_form.start_time.errors %}
+                                    <div class="text-red-500 text-xs mt-1">
+                                        {% for error in session_form.start_time.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="end_time" class="block text-gray-700 text-sm font-bold mb-2">End Time</label>
+                                {{ session_form.end_time|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" type="datetime-local" }}
+                                {% if session_form.end_time.errors %}
+                                    <div class="text-red-500 text-xs mt-1">
+                                        {% for error in session_form.end_time.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="speaker" class="block text-gray-700 text-sm font-bold mb-2">Speaker (optional)</label>
+                            {{ session_form.speaker|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" placeholder="Enter speaker name" }}
+                            {% if session_form.speaker.errors %}
+                                <div class="text-red-500 text-xs mt-1">
+                                    {% for error in session_form.speaker.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description (optional)</label>
+                            {{ session_form.description|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" rows="3" placeholder="Describe the session" }}
+                            {% if session_form.description.errors %}
+                                <div class="text-red-500 text-xs mt-1">
+                                    {% for error in session_form.description.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            {{ session_form.submit|add_class:"bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-indigo-300" }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Information Sidebar -->
+    <div class="space-y-6">
+        <!-- Event Details Summary -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-3 px-6">
+                <h2 class="text-xl font-bold">Event Details</h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Start Time</h3>
+                        <p class="text-gray-800">{{ event.start_time|date:"M d, Y • g:i A" }}</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">End Time</h3>
+                        <p class="text-gray-800">{{ event.end_time|date:"M d, Y • g:i A" }}</p>
+                    </div>
+                    
+                    {% if event.location %}
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Location</h3>
+                        <p class="text-gray-800">{{ event.location }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if event.is_virtual and event.stream_url %}
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Stream URL</h3>
+                        <p class="text-gray-800 break-all">{{ event.stream_url }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if event.max_attendees %}
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Maximum Attendees</h3>
+                        <p class="text-gray-800">{{ event.max_attendees }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Danger Zone -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-red-600 text-white py-3 px-6">
+                <h2 class="text-xl font-bold">Danger Zone</h2>
+            </div>
+            
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">These actions cannot be undone. Be sure about what you're doing.</p>
+                
+                <form action="{% url 'events:event_delete' event_id=event.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this event? This action cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors">
+                        <i class="fas fa-trash-alt mr-2"></i> Delete Event
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

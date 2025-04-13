@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} - EventHub{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Event Header -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="relative h-64 bg-indigo-600">
+            {% if event.image_url %}
+            <img src="{{ event.image_url }}" alt="{{ event.title }}" class="w-full h-full object-cover">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600">
+                <i class="fas fa-calendar-alt text-white text-6xl"></i>
+            </div>
+            {% endif %}
+            
+            <!-- Event status badge -->
+            <div class="absolute top-4 right-4">
+                {% if event.start_time > now %}
+                    <span class="bg-green-100 text-green-800 text-sm font-medium py-1 px-3 rounded-full">Upcoming</span>
+                {% elif event.end_time > now and event.start_time <= now %}
+                    <span class="bg-blue-100 text-blue-800 text-sm font-medium py-1 px-3 rounded-full">In Progress</span>
+                {% else %}
+                    <span class="bg-gray-100 text-gray-800 text-sm font-medium py-1 px-3 rounded-full">Ended</span>
+                {% endif %}
+                
+                {% if event.is_virtual %}
+                    <span class="bg-indigo-100 text-indigo-800 text-sm font-medium py-1 px-3 rounded-full ml-2">Virtual</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ event.title }}</h1>
+            
+            <div class="flex flex-wrap gap-4 mb-6">
+                <div class="flex items-center text-gray-600">
+                    <i class="far fa-calendar-alt mr-2"></i>
+                    <span>{{ event.start_time|date:"F d, Y" }}</span>
+                </div>
+                
+                <div class="flex items-center text-gray-600">
+                    <i class="far fa-clock mr-2"></i>
+                    <span>{{ event.start_time|date:"g:i A" }} - {{ event.end_time|date:"g:i A" }}</span>
+                </div>
+                
+                {% if event.location %}
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-map-marker-alt mr-2"></i>
+                    <span>{{ event.location }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="flex items-center text-gray-600">
+                    <i class="far fa-user mr-2"></i>
+                    <span>Hosted by <a href="#" class="text-indigo-600 hover:text-indigo-800">{{ event.creator.username }}</a></span>
+                </div>
+            </div>
+            
+            <!-- Action buttons for event -->
+            <div class="flex flex-wrap gap-3 mb-6">
+                {% if user.is_authenticated %}
+                    {% if request.user == event.creator %}
+                        <a href="{% url 'events:event_manage' event_id=event.id %}" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors">
+                            <i class="fas fa-cog mr-2"></i> Manage Event
+                        </a>
+                        <a href="{% url 'events:event_edit' event_id=event.id %}" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+                            <i class="fas fa-edit mr-2"></i> Edit Event
+                        </a>
+                    {% elif is_registered %}
+                        {% if event.is_virtual and event.start_time <= now and event.end_time >= now %}
+                        <a href="{% url 'events:livestream' event_id=event.id %}" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
+                            <i class="fas fa-video mr-2"></i> Join Livestream
+                        </a>
+                        {% endif %}
+                        <form action="{% url 'events:event_unregister' event_id=event.id %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-user-minus mr-2"></i> Unregister
+                            </button>
+                        </form>
+                    {% else %}
+                        <form action="{% url 'events:event_register' event_id=event.id %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-user-plus mr-2"></i> Register for Event
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    <!-- Show countdown for upcoming events -->
+                    {% if event.start_time > now %}
+                    <div class="flex items-center text-gray-600 ml-auto">
+                        <i class="fas fa-hourglass-half mr-2"></i>
+                        <span id="countdown">Loading countdown...</span>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Login to Register
+                    </a>
+                {% endif %}
+            </div>
+            
+            <!-- Event Description -->
+            <div class="prose max-w-none">
+                <h2 class="text-xl font-semibold text-gray-800 mb-2">About this event</h2>
+                <p class="text-gray-700 whitespace-pre-line">{{ event.description }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Schedule -->
+    {% if sessions %}
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="bg-indigo-100 py-4 px-6">
+            <h2 class="text-xl font-bold text-indigo-800">Event Schedule</h2>
+        </div>
+        
+        <div class="p-6">
+            <div class="space-y-4">
+                {% for session in sessions %}
+                <div class="border-l-4 border-indigo-500 pl-4 py-2">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">{{ session.title }}</h3>
+                            {% if session.speaker %}
+                            <p class="text-gray-600"><i class="fas fa-user-tie mr-2"></i>{{ session.speaker }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-right text-gray-600">
+                            <div>{{ session.start_time|date:"g:i A" }} - {{ session.end_time|date:"g:i A" }}</div>
+                            <div>{{ session.start_time|date:"F d, Y" }}</div>
+                        </div>
+                    </div>
+                    {% if session.description %}
+                    <p class="text-gray-700 mt-2">{{ session.description }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if event.start_time > now %}
+<script>
+    // Countdown timer for upcoming events
+    document.addEventListener('DOMContentLoaded', function() {
+        const countdownEl = document.getElementById('countdown');
+        const eventDate = new Date("{{ event.start_time|date:'c' }}");
+        
+        function updateCountdown() {
+            const now = new Date();
+            const distance = eventDate - now;
+            
+            // Time calculations
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            // Display result
+            countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s until event starts`;
+            
+            // If the countdown is over
+            if (distance < 0) {
+                clearInterval(timer);
+                countdownEl.textContent = "Event has started!";
+                // Refresh the page to update UI
+                location.reload();
+            }
+        }
+        
+        // Initial call
+        updateCountdown();
+        // Update countdown every second
+        const timer = setInterval(updateCountdown, 1000);
+    });
+</script>
+{% endif %}
+{% endblock %}

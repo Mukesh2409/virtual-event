@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Access Forbidden - EventHub{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-red-600 text-white py-8 px-6 text-center">
+        <h1 class="text-6xl font-bold mb-2">403</h1>
+        <h2 class="text-2xl font-semibold">Access Forbidden</h2>
+    </div>
+    
+    <div class="p-8 text-center">
+        <div class="text-gray-400 mb-6">
+            <i class="fas fa-lock text-6xl"></i>
+        </div>
+        <p class="text-xl text-gray-700 mb-6">You don't have permission to access this resource.</p>
+        <div class="flex justify-center space-x-4">
+            <a href="{{ url_for('index') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition-colors">
+                <i class="fas fa-home mr-2"></i> Go Home
+            </a>
+            <button onclick="history.back()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Go Back
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

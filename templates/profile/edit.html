@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile - EventHub{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 py-4 px-6 text-white">
+        <h2 class="text-2xl font-bold">Edit Your Profile</h2>
+        <p class="text-indigo-200">Update your personal information and bio</p>
+    </div>
+    
+    <div class="p-6">
+        <form method="POST" action="{% url 'accounts:profile_edit' %}">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label for="{{ form.username.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                {{ form.username|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" placeholder="Your username" }}
+                {% if form.username.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.username.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.email.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
+                {{ form.email|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" placeholder="Your email address" }}
+                {% if form.email.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.email.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.first_name.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">First Name</label>
+                {{ form.first_name|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" placeholder="Your first name" }}
+                {% if form.first_name.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.first_name.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.last_name.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Last Name</label>
+                {{ form.last_name|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" placeholder="Your last name" }}
+                {% if form.last_name.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.last_name.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-6">
+                <label for="{{ form.bio.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Bio</label>
+                {{ form.bio|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-indigo-300" rows="4" placeholder="Tell us about yourself" }}
+                {% if form.bio.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.bio.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <a href="{% url 'accounts:profile_view' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-gray-300">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-indigo-300">
+                    Update Profile
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EventHub - Virtual Event Platform{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block styles %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="{% url 'home' %}" class="text-2xl font-bold flex items-center">
+                <i class="fas fa-video mr-2"></i>
+                EventHub
+            </a>
+            
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="{% url 'home' %}" class="hover:text-indigo-200 transition-colors">Home</a>
+                <a href="{% url 'events:event_list' %}" class="hover:text-indigo-200 transition-colors">Events</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'events:my_events' %}" class="hover:text-indigo-200 transition-colors">My Events</a>
+                    <a href="{% url 'events:event_create' %}" class="bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors">Create Event</a>
+                    <div class="relative group">
+                        <button class="flex items-center space-x-1 hover:text-indigo-200 transition-colors">
+                            <span>{{ user.username }}</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div class="absolute right-0 w-48 mt-2 py-2 bg-white rounded-md shadow-xl hidden group-hover:block z-10">
+                            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-500 hover:text-white">
+                                <i class="fas fa-user mr-2"></i> Profile
+                            </a>
+                            <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-500 hover:text-white">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="hover:text-indigo-200 transition-colors">Login</a>
+                    <a href="{% url 'accounts:register' %}" class="bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors">Register</a>
+                {% endif %}
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-white focus:outline-none" id="mobile-menu-button">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </nav>
+        
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden bg-indigo-700 px-4 py-2" id="mobile-menu">
+            <a href="{% url 'home' %}" class="block py-2 hover:text-indigo-200 transition-colors">Home</a>
+            <a href="{% url 'events:event_list' %}" class="block py-2 hover:text-indigo-200 transition-colors">Events</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'events:my_events' %}" class="block py-2 hover:text-indigo-200 transition-colors">My Events</a>
+                <a href="{% url 'events:event_create' %}" class="block py-2 hover:text-indigo-200 transition-colors">Create Event</a>
+                <a href="{% url 'accounts:profile' %}" class="block py-2 hover:text-indigo-200 transition-colors">Profile</a>
+                <a href="{% url 'accounts:logout' %}" class="block py-2 hover:text-indigo-200 transition-colors">Logout</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="block py-2 hover:text-indigo-200 transition-colors">Login</a>
+                <a href="{% url 'accounts:register' %}" class="block py-2 hover:text-indigo-200 transition-colors">Register</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Django Messages -->
+    {% if messages %}
+        <div class="container mx-auto px-4 pt-4">
+            {% for message in messages %}
+                {% with message_tags=message.tags|default:'info' %}
+                    <div class="{% if message_tags == 'success' %}bg-green-100 border-green-400 text-green-700{% elif message_tags == 'warning' %}bg-yellow-100 border-yellow-400 text-yellow-700{% elif message_tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message_tags == 'debug' %}bg-gray-100 border-gray-400 text-gray-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-4 rounded relative border" role="alert">
+                        <span class="block sm:inline">{{ message }}</span>
+                        <button class="absolute top-0 right-0 px-4 py-3 focus:outline-none" onclick="this.parentElement.style.display='none'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <a href="{% url 'home' %}" class="text-xl font-bold flex items-center">
+                        <i class="fas fa-video mr-2"></i>
+                        EventHub
+                    </a>
+                    <p class="text-gray-400 mt-2">Connect, Learn, and Grow together</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <hr class="border-gray-700 my-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400">&copy; 2023 EventHub. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
